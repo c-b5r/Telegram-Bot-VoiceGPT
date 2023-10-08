@@ -96,24 +96,14 @@ async def handle_message(message: types.Message):
     # Respond with ChatGPT response
     await message.answer(response_text)
 
-    # Get the voice message object
-    file_id = message.message_id
-
-    # Write ChatGPT response to text file
-    response_text_file = os.path.join(tmpdir, f"{file_id}-response.txt")
-    with open(response_text_file, "w") as file:
-      file.write(response_text)
-
-    # Run text-to-speech on response using gTTS
-    output_message_voice_file_ogg = os.path.join(tmpdir, f"{file_id}-response.ogg")
-
-    gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+    # Create voice message from ChatGPT response
+    output_message_voice_file_ogg = tts(file_id=message.message_id, text=response_text)
 
     # Respond with TTS voice message of ChatGPT response
     await message.answer_voice(voice=open(output_message_voice_file_ogg, "rb"))
 
     # Clear temp files
-    cleanTempFiles(file_id=file_id)
+    cleanTempFiles(file_id=message.message_id)
 
 
 # Define a handler function for voice messages
@@ -147,21 +137,30 @@ async def handle_voice_message(message: types.Message):
   # Respond with ChatGPT response
   await message.answer(response_text)
 
-  # Write ChatGPT response to text file
-  response_text_file = os.path.join(tmpdir, f"{file_id}-response.txt")
-  with open(response_text_file, "w") as file:
-    file.write(response_text)
-
-  # Run text-to-speech on response using gTTS
-  output_message_voice_file_ogg = os.path.join(tmpdir, f"{file_id}-response.ogg")
-
-  gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+  # Create voice message from ChatGPT response
+  output_message_voice_file_ogg = tts(file_id=file_id, text=response_text)
 
   # Respond with TTS voice message of ChatGPT response
   await message.answer_voice(voice=open(output_message_voice_file_ogg, "rb"))
 
   # Clear temp files
   cleanTempFiles(file_id=file_id)
+
+
+# Util function: gTTS
+def tts(file_id, text):
+  # Write ChatGPT response to text file
+  response_text_file = os.path.join(tmpdir, f"{file_id}-response.txt")
+  with open(response_text_file, "w") as file:
+    file.write(text)
+
+  # Run text-to-speech on response using gTTS
+  output_message_voice_file_ogg = os.path.join(tmpdir, f"{file_id}-response.ogg")
+
+  # Run gTTS
+  gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+
+  return output_message_voice_file_ogg
 
 
 # Start the bot
