@@ -90,7 +90,30 @@ async def handle_message(message: types.Message):
 
   # DEFAULT: Answer messages
   else:
-    await message.answer(getGptResponse(message.from_user.id, message.text))
+    # Get ChatGPT response
+    response_text = getGptResponse(message.from_user.id, message.text)
+
+    # Respond with ChatGPT response
+    await message.answer(response_text)
+
+    # Get the voice message object
+    file_id = message.message_id
+
+    # Write ChatGPT response to text file
+    response_text_file = os.path.join(tmpdir, f"{file_id}-response.txt")
+    with open(response_text_file, "w") as file:
+      file.write(response_text)
+
+    # Run text-to-speech on response using gTTS
+    output_message_voice_file_ogg = os.path.join(tmpdir, f"{file_id}-response.ogg")
+
+    gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+
+    # Respond with TTS voice message of ChatGPT response
+    await message.answer_voice(voice=open(output_message_voice_file_ogg, "rb"))
+
+    # Clear temp files
+    cleanTempFiles(file_id=file_id)
 
 
 # Define a handler function for voice messages
@@ -136,7 +159,7 @@ async def handle_voice_message(message: types.Message):
 
   # Respond with TTS voice message of ChatGPT response
   await message.answer_voice(voice=open(output_message_voice_file_ogg, "rb"))
-  
+
   # Clear temp files
   cleanTempFiles(file_id=file_id)
 
