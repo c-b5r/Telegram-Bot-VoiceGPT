@@ -90,11 +90,17 @@ async def handle_message(message: types.Message):
 
   # DEFAULT: Answer messages
   else:
+    # Send typing action
+    await message.answer_chat_action("typing")
+
     # Get ChatGPT response
     response_text = getGptResponse(message.from_user.id, message.text)
 
     # Respond with ChatGPT response
     await message.answer(response_text)
+
+    # Send record voice action
+    await message.answer_chat_action("record_voice")
 
     # Create voice message from ChatGPT response
     output_message_voice_file_ogg = tts(file_id=message.message_id, text=response_text)
@@ -109,6 +115,9 @@ async def handle_message(message: types.Message):
 # Define a handler function for voice messages
 @dp.message_handler(content_types=types.ContentType.VOICE)
 async def handle_voice_message(message: types.Message):
+  # Send typing notification
+  await message.answer_chat_action("typing")
+
   # Get the voice message object
   file_id = message.voice.file_id
 
@@ -136,6 +145,9 @@ async def handle_voice_message(message: types.Message):
 
   # Respond with ChatGPT response
   await message.answer(response_text)
+
+  # Send record voice action
+  await message.answer_chat_action("record_voice")
 
   # Create voice message from ChatGPT response
   output_message_voice_file_ogg = tts(file_id=file_id, text=response_text)
