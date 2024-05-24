@@ -7,12 +7,8 @@ from aiogram.utils import executor
 import os, subprocess
 import chatgpt
 
-# Read the token from a file
-with open("/home/cb/.key/me/t/cb5r_VoiceGPT_Bot", "r") as file:
-  token = file.read().strip()
-
 # Create a bot instance
-bot = Bot(token=token)
+bot = Bot(token=os.environ.get("TELEGRAM_BOT_TOKEN"))
 
 # Create a dispatcher instance
 dp = Dispatcher(bot)
@@ -50,6 +46,10 @@ def getGptResponse(id: int, prompt: str):
 def gtts(inputFile: str, outputFile: str):
   global language
   subprocess.call(f"gtts-cli --lang {language} --file '{inputFile}' | ffmpeg -i pipe:0 -f opus -ac 1 -ar 48k -b:a 32k {outputFile}", shell=True)
+
+def coqui_tts(inputFile: str, outputFile: str):
+  global language
+  subprocess.call(f"curl 'localhost:5002/api/tts?text=$(tr ' ' '+' << 'inputFile')&speaker_id=p270' | ffmpeg -i pipe:0 -f opus -ac 1 -ar 48k -b:a 32k {outputFile}", shell=True)
 
 def escapeSpecialChars(text: str):
   for char in ['*', '_', '`', '[', ']', '!', '.']:
@@ -139,6 +139,10 @@ async def handle_voice_message(message: types.Message):
 
   # Respond with prompt transcript
   await message.reply(f"*TRANSCRIPT*\n\n{prompt_text}", parse_mode=types.ParseMode.MARKDOWN_V2)
+  
+  # DEBUG
+  output_message_voice_file_ogg = tts(file_id=file_id, text=prompt_text)
+  await message.answer_voice(voice=open(output_message_voice_file_ogg, "rb"))
 
   # Get ChatGPT response
   response_text = getGptResponse(message.from_user.id, prompt_text)
@@ -159,7 +163,7 @@ async def handle_voice_message(message: types.Message):
   cleanTempFiles(file_id=file_id)
 
 
-# Util function: gTTS
+# Util function: TTS
 def tts(file_id, text):
   # Write ChatGPT response to text file
   response_text_file = os.path.join(tmpdir, f"{file_id}-response.txt")
@@ -169,8 +173,9 @@ def tts(file_id, text):
   # Run text-to-speech on response using gTTS
   output_message_voice_file_ogg = os.path.join(tmpdir, f"{file_id}-response.ogg")
 
-  # Run gTTS
-  gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+  # TTS
+  # gtts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
+  coqui_tts(inputFile=response_text_file, outputFile=output_message_voice_file_ogg)
 
   return output_message_voice_file_ogg
 
