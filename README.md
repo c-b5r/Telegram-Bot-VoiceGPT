@@ -2,6 +2,10 @@
 
 This is a Telegram bot that lets users chat with ChatGPT through Telegram. Both written and voice messages are supported. The bot will always transcribe voice messages to text first (and send it back as reference) and also respond through both text and voice. Hence, maximum flexibility of use-cases ia guaranteed.
 
+## Screenshots
+
+![screenshot](https://github.com/c-b5r/Telegram-Bot-VoiceGPT/blob/main/screenshot.png?raw=true)
+
 ## How To Use
 
 ### Requirements
