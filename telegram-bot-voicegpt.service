@@ -1,0 +1,13 @@
+[Unit]
+Description=Telegram Bot: VoiceGPT
+
+[Service]
+Type=simple
+Environment="OPENAI_API_KEY=OPENAI_API_KEY"
+Environment="TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN"
+ExecStart=/bin/bash -c "%h/devel/telegram/Telegram-Bot-VoiceGPT/main.py"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
